@@ -1,0 +1,14 @@
+# Этап 1: Сборка приложения
+FROM golang:1.22-alpine AS builder
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/server .
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates
+WORKDIR /app/server
+COPY --from=builder /app/server .
+COPY tracker.db .
+EXPOSE 8080
+CMD ["./server"]
